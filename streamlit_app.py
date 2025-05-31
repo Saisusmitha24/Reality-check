@@ -1,6 +1,8 @@
 import os
 import streamlit as st
 import openai
+st.write("🔍 OpenAI library version:", openai.__version__)
+
 from geopy.geocoders import Nominatim
 from pytrends.request import TrendReq
 
