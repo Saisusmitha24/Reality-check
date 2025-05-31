@@ -84,7 +84,7 @@ def predict(idea, location):
 st.title("Reality Check GPT — Local Idea Validator")
 
 idea = st.text_input("Your business idea")
-location = st.text_input("Your city or neighborhood", "Bangalore")
+location = st.text_input("Your city or neighborhood", "")
 
 if st.button("Validate my idea"):
     if not idea:
