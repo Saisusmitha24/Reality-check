@@ -4,7 +4,7 @@ import openai
 from geopy.geocoders import Nominatim
 from pytrends.request import TrendReq
 
-openai.api_key = st.secrets("OPENAI_API_KEY")
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 def find_competitors(idea, location, limit=5):
     geolocator = Nominatim(user_agent="mvp_app")
