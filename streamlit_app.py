@@ -95,7 +95,8 @@ if st.button("Validate my idea"):
 
         st.subheader("Reality Check")
         st.write(result)
-        st.write("**Nearby competitors:**", find_competitors(idea, location))
+        competitors = find_competitors(idea, location)
+st.write("**Nearby competitors:**", ", ".join(competitors) if competitors else "None found")
         st.write("**Demand signal:**", demand_signal(idea, location))
 
 
