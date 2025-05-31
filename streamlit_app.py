@@ -92,11 +92,10 @@ if st.button("Validate my idea"):
     else:
         with st.spinner("Crunching local data…"):
             result = predict(idea, location)
+            competitors = find_competitors(idea, location)
+            demand = demand_signal(idea, location)
 
         st.subheader("Reality Check")
         st.write(result)
-        competitors = find_competitors(idea, location)
-st.write("**Nearby competitors:**", ", ".join(competitors) if competitors else "None found")
-        st.write("**Demand signal:**", demand_signal(idea, location))
-
-
+        st.write("**Nearby competitors:**", ", ".join(competitors) if competitors else "None found")
+        st.write("**Demand signal:**", demand)
