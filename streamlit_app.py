@@ -1,34 +1,42 @@
-import os
 import streamlit as st
-
-# We import `openai` here just to check the version. 
-# Once you verify that `openai.__version__` is ≥ 1.3.5, you can remove/comment out this import and the st.write line.
-import openai  
 from openai import OpenAI
-
+import openai           # only if you use openai.__version__ for debugging
+from geopy.exc import GeocoderUnavailable, GeocoderTimedOut
 from geopy.geocoders import Nominatim
 from pytrends.request import TrendReq
 
-# ─── Debug: Display the installed OpenAI version (remove/comment this out later) ─────────────────────
+# If you were debugging, you can keep this for a moment to confirm version:
 st.write("🔍 OpenAI library version:", openai.__version__)
 
-# ─── Instantiate the new client using your secret key ───────────────────────────────────────────────
+# Instantiate the OpenAI client
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 
 def find_competitors(idea, location, limit=5):
-    geolocator = Nominatim(user_agent="mvp_app")
-    loc = geolocator.geocode(location)
+    """
+    Attempt to geocode the location. If geocoding fails, return an empty list
+    (or use placeholders instead).
+    """
+    try:
+        geolocator = Nominatim(user_agent="mvp_app", timeout=10)
+        loc = geolocator.geocode(location)
+    except (GeocoderUnavailable, GeocoderTimedOut):
+        # Free Nominatim is unavailable or timed out
+        return []  # or: [f"{idea} Placeholder {i+1}" for i in range(limit)]
+    except Exception:
+        # Any other error (e.g., parsing), fail gracefully
+        return []
+
     if not loc:
         return []
+
     return [f"{idea} Shop {i+1}" for i in range(limit)]
 
 
 def demand_signal(idea, location):
     pytrends = TrendReq()
     kw = [idea]
-    # For now, we default to India (“IN”). You can adjust or build a mapping function like location_iso(location) if needed.
-    pytrends.build_payload(kw, geo="IN")
+    pytrends.build_payload(kw, geo="IN")  # Or your desired country code
     data = pytrends.interest_over_time()
     if data.empty:
         return "No Google Trends data"
@@ -40,13 +48,12 @@ def predict(idea, location):
     comps = find_competitors(idea, location)
     trend = demand_signal(idea, location)
 
-    # Assemble a simple “system” + “user” chat conversation
     messages = [
         {
             "role": "system",
             "content": (
-                "You are a local startup advisor. "
-                "Given the information below, decide if this idea will succeed locally and explain why or why not."
+                "You are a local startup advisor. Given the following info, "
+                "predict if the idea will succeed locally and explain why or why not."
             )
         },
         {
@@ -61,7 +68,7 @@ def predict(idea, location):
         }
     ]
 
-    # ─── Call the v1+ Chat API via the new `client` object ────────────────────────────────────────────
+    # Use the v1+ ChatCompletion client syntax
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=messages,
@@ -69,11 +76,11 @@ def predict(idea, location):
         temperature=0.7
     )
 
-    # Extract and return the assistant’s reply
     return response.choices[0].message.content.strip()
 
 
-# ─── Streamlit UI ───────────────────────────────────────────────────────────────────────────────────
+# ─── Streamlit UI ──────────────────────────────────────────────────────────────────────────
+
 st.title("Reality Check GPT — Local Idea Validator")
 
 idea = st.text_input("Your business idea")
@@ -90,4 +97,5 @@ if st.button("Validate my idea"):
         st.write(result)
         st.write("**Nearby competitors:**", find_competitors(idea, location))
         st.write("**Demand signal:**", demand_signal(idea, location))
+
 
