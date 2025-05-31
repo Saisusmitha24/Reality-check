@@ -26,22 +26,36 @@ def demand_signal(idea, location):
 def predict(idea, location):
     comps = find_competitors(idea, location)
     trend = demand_signal(idea, location)
-    prompt = f"""
-You are a local startup advisor.
-Idea: {idea}
-Location: {location}
-Competitors nearby: {', '.join(comps) or 'None found'}
-Demand signal: {trend}
 
-Given these, predict whether the idea will succeed locally, and why.
-"""
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt=prompt,
+    # Construct a “system” + “user” conversation
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a local startup advisor. Use the data below to predict if the idea can succeed locally."
+        },
+        {
+            "role": "user",
+            "content": (
+                f"Idea: {idea}\n"
+                f"Location: {location}\n"
+                f"Competitors nearby: {', '.join(comps) or 'None found'}\n"
+                f"Demand signal: {trend}\n\n"
+                "Based on this information, give a concise prediction: will it succeed locally? Explain why or why not."
+            )
+        }
+    ]
+
+    # Call the new ChatCompletion endpoint
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=messages,
         max_tokens=300,
         temperature=0.7
     )
-    return response.choices[0].text.strip()
+
+    # Extract the assistant’s reply
+    return response.choices[0].message.content.strip()
+
 
 # Streamlit UI
 st.title("Reality Check GPT — Local Idea Validator")
