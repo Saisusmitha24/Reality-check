@@ -9,9 +9,6 @@ from pytrends.request import TrendReq
 
 # ─── INITIAL SETUP ────────────────────────────────────────────────────────────────
 
-# (Optional) Show which version of openai is installed—remove/comment out later.
-st.write("🔍 OpenAI library version:", openai.__version__)
-
 # Initialize OpenAI client
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
