@@ -18,8 +18,17 @@ if st.button("Get Reality Check"):
     with st.spinner("Analyzing your idea using local data..."):
 
         messages = [
-            {"role": "system", "content": "You're an expert market analyst generating personalized local business evaluations. Respond with structured JSON including success probability, competitor analysis, demand signal, and key risks/opportunities."},
-            {"role": "user", "content": f"""Evaluate the business idea \"{idea}\" in the location \"{location}\" using local competition, demand signals, and market size. Return the result in this format:
+            {
+                "role": "system",
+                "content": (
+                    "You're an expert market analyst generating personalized local business evaluations. "
+                    "Respond with structured JSON including success probability, competitor analysis, demand signal, "
+                    "and key risks/opportunities."
+                )
+            },
+            {
+                "role": "user",
+                "content": f"""Evaluate the business idea \"{idea}\" in the location \"{location}\" using local competition, demand signals, and market size. Return the result in this format:
 {{
   \"success_probability\": \"45%\",
   \"market_size\": \"Medium\",
@@ -42,7 +51,8 @@ if st.button("Get Reality Check"):
     \"Low weekend foot traffic\",
     \"High initial investment for equipment\"
   ]
-}"""}
+}"""
+            }
         ]
 
         try:
@@ -83,4 +93,5 @@ if st.button("Get Reality Check"):
             st.error("AI response could not be parsed. Please try again.")
         except Exception as e:
             st.error(f"Unexpected error: {e}")
+
 
