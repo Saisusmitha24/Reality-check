@@ -1,101 +1,86 @@
 import streamlit as st
 from openai import OpenAI
-import openai           # only if you use openai.__version__ for debugging
-from geopy.exc import GeocoderUnavailable, GeocoderTimedOut
-from geopy.geocoders import Nominatim
-from pytrends.request import TrendReq
+import openai
+import json
 
-# If you were debugging, you can keep this for a moment to confirm version:
-st.write("🔍 OpenAI library version:", openai.__version__)
-
-# Instantiate the OpenAI client
+# Setup OpenAI client
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
+# Title and instructions
+st.title("Reality Check GPT")
+st.subheader("Get AI-powered predictions on whether your business idea will actually work in your local area")
 
-def find_competitors(idea, location, limit=5):
-    """
-    Attempt to geocode the location. If geocoding fails, return an empty list
-    (or use placeholders instead).
-    """
-    try:
-        geolocator = Nominatim(user_agent="mvp_app", timeout=10)
-        loc = geolocator.geocode(location)
-    except (GeocoderUnavailable, GeocoderTimedOut):
-        # Free Nominatim is unavailable or timed out
-        return []  # or: [f"{idea} Placeholder {i+1}" for i in range(limit)]
-    except Exception:
-        # Any other error (e.g., parsing), fail gracefully
-        return []
+st.markdown("### Validate Your Idea")
+idea = st.text_input("Enter your business idea", "coffee shop")
+location = st.text_input("Enter your city or neighborhood", "penukonda")
 
-    if not loc:
-        return []
+if st.button("Get Reality Check"):
+    with st.spinner("Analyzing your idea using local data..."):
 
-    return [f"{idea} Shop {i+1}" for i in range(limit)]
+        messages = [
+            {"role": "system", "content": "You're an expert market analyst generating personalized local business evaluations. Respond with structured JSON including success probability, competitor analysis, demand signal, and key risks/opportunities."},
+            {"role": "user", "content": f"""Evaluate the business idea \"{idea}\" in the location \"{location}\" using local competition, demand signals, and market size. Return the result in this format:
+{{
+  \"success_probability\": \"45%\",
+  \"market_size\": \"Medium\",
+  \"competitors\": 3,
+  \"location\": \"{location}\",
+  \"local_demand\": {{
+    \"search_volume\": \"High\",
+    \"population_growth\": \"Medium\",
+    \"competitor_density\": \"Low\"
+  }},
+  \"nearby_competitors\": [
+    {{\"name\": \"Local Coffee Spot\", \"distance\": \"0.6 miles\", \"rating\": \"4.1\"}},
+    {{\"name\": \"Main Street Café\", \"distance\": \"1.2 miles\", \"rating\": \"4.3\"}}
+  ],
+  \"key_insights\": [
+    \"Strong local demand with moderate competition\",
+    \"Opportunity to attract office crowd in the mornings\"
+  ],
+  \"risks\": [
+    \"Low weekend foot traffic\",
+    \"High initial investment for equipment\"
+  ]
+}"""}
+        ]
 
-
-def demand_signal(idea, location):
-    pytrends = TrendReq()
-    kw = [idea]
-    pytrends.build_payload(kw, geo="IN")  # Or your desired country code
-    data = pytrends.interest_over_time()
-    if data.empty:
-        return "No Google Trends data"
-    avg = int(data[idea].mean())
-    return f"Average interest: {avg}"
-
-
-def predict(idea, location):
-    comps = find_competitors(idea, location)
-    trend = demand_signal(idea, location)
-
-    messages = [
-        {
-            "role": "system",
-            "content": (
-                "You are a local startup advisor. Given the following info, "
-                "predict if the idea will succeed locally and explain why or why not."
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=messages,
+                temperature=0.7
             )
-        },
-        {
-            "role": "user",
-            "content": (
-                f"Idea: {idea}\n"
-                f"Location: {location}\n"
-                f"Competitors nearby: {', '.join(comps) or 'None found'}\n"
-                f"Demand signal: {trend}\n\n"
-                "Based on this data, will the idea succeed locally? Explain in a few sentences."
-            )
-        }
-    ]
 
-    # Use the v1+ ChatCompletion client syntax
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=messages,
-        max_tokens=300,
-        temperature=0.7
-    )
+            content = response.choices[0].message.content
+            data = json.loads(content)
 
-    return response.choices[0].message.content.strip()
+            # Display sections
+            st.subheader("Success Probability")
+            st.metric(label="Chance of Success", value=data["success_probability"])
 
+            st.subheader("Market Insights")
+            st.write(f"**Market Size:** {data['market_size']}")
+            st.write(f"**Competitors Nearby:** {data['competitors']}")
 
-# ─── Streamlit UI ──────────────────────────────────────────────────────────────────────────
+            st.subheader("Local Demand Signals")
+            for key, val in data["local_demand"].items():
+                st.write(f"**{key.replace('_', ' ').title()}:** {val}")
 
-st.title("Reality Check GPT — Local Idea Validator")
+            st.subheader("Nearby Competitors")
+            for comp in data["nearby_competitors"]:
+                st.markdown(f"- **{comp['name']}** — {comp['distance']} — ⭐ {comp['rating']}")
 
-idea = st.text_input("Your business idea")
-location = st.text_input("Your city or neighborhood", "")
+            st.subheader("Key Insights")
+            for insight in data["key_insights"]:
+                st.markdown(f"✅ {insight}")
 
-if st.button("Validate my idea"):
-    if not idea:
-        st.warning("Please enter an idea!")
-    else:
-        with st.spinner("Crunching local data…"):
-            result = predict(idea, location)
-            competitors = find_competitors(idea, location)
-            demand = demand_signal(idea, location)
+            st.subheader("Potential Risks")
+            for risk in data["risks"]:
+                st.markdown(f"⚠️ {risk}")
 
-        st.subheader("Reality Check")
-        st.write(result)
-        st.write("**Nearby competitors:**", ", ".join(competitors) if competitors else "None found")
-        st.write("**Demand signal:**", demand)
+        except json.JSONDecodeError:
+            st.error("AI response could not be parsed. Please try again.")
+        except Exception as e:
+            st.error(f"Unexpected error: {e}")
+
