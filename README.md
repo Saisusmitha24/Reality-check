@@ -1,35 +1,41 @@
-🧠 Reality Check GPT
-AI-powered Business Idea Validator — powered by GPT & local data
+# 🧠 Reality Check GPT
 
-💡 About
-Reality Check GPT helps aspiring entrepreneurs evaluate the real-world potential of their business ideas based on location-specific data. By combining OpenAI’s GPT model with simulated demand signals and competitor analysis, the app delivers a fast, intelligent, and structured assessment of your startup concept.
+**AI-powered Business Idea Validator — powered by GPT & local data**
 
-Whether you're launching a new coffee shop or a niche tech service, this tool helps answer a vital question:
-"Will this work in my area?"
+## 💡 About
 
-🚀 Features
-🔍 Smart Location-Based Validation
-Enter your business idea and a location — get tailored insights in seconds.
+**Reality Check GPT** helps aspiring entrepreneurs evaluate the real-world potential of their business ideas based on location-specific data.  
+By combining OpenAI’s GPT model with simulated demand signals and competitor analysis, the app delivers a fast, intelligent, and structured assessment of your startup concept.
 
-🧭 AI-Generated Success Prediction
-Uses GPT to evaluate feasibility, estimate success probability, and identify risks.
+Whether you're launching a new coffee shop or a niche tech service, this tool helps answer the critical question:  
+**"Will this work in *my* area?"**
 
-📊 Key Metrics at a Glance
-Market size, local demand, competition level, and more — neatly visualized.
+---
 
-🧠 Actionable Insights & Warnings
-See what’s promising and what could go wrong before investing your time or money.
+## 🚀 Features
 
-📍 Simulated Competitor Analysis
-Dummy but realistic competitor profiles give users a sense of market saturation.
+- 🔍 **Smart Location-Based Validation**  
+  Input a business idea and a location to get tailored insights in seconds.
 
-🛠️ Tech Stack
-Frontend: Streamlit for responsive UI
+- 🧭 **AI-Generated Success Prediction**  
+  Uses OpenAI’s GPT to estimate feasibility, success probability, and potential market fit.
 
-AI Backend: OpenAI GPT-3.5 (gpt-3.5-turbo) via openai Python SDK
+- 📊 **Key Metrics at a Glance**  
+  Market size, local demand, competition level, and more — visualized clearly.
 
-Location & Demand Signals: Geopy (Nominatim), placeholder Google Trends data
+- 🧠 **Actionable Insights & Risk Warnings**  
+  Understand strengths and risks before investing resources.
 
-Data Handling: Pandas
+- 📍 **Simulated Competitor Analysis**  
+  Dummy but realistic competitor data gives a feel for the local market landscape.
 
-Other: Python, JSON parsing, basic error handling
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend:** Streamlit  
+- **AI Engine:** OpenAI GPT-3.5 (`gpt-3.5-turbo`) via `openai` Python SDK  
+- **Location Services:** Geopy (Nominatim)  
+- **Trend Signals:** Simulated Google Trends data (placeholder)  
+- **Data Handling:** Pandas, JSON  
+- **Language:** Python 3.3
